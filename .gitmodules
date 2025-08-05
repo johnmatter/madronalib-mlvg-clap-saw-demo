@@ -1,0 +1,18 @@
+[submodule "libs/clap"]
+	path = libs/clap
+	url = https://github.com/free-audio/clap.git
+[submodule "libs/clap-helpers"]
+	path = libs/clap-helpers
+	url = https://github.com/free-audio/clap-helpers.git
+[submodule "libs/clap-validator"]
+	path = libs/clap-validator
+	url = https://github.com/free-audio/clap-validator.git
+[submodule "libs/madronalib"]
+	path = libs/madronalib
+	url = https://github.com/johnmatter/madronalib.git
+[submodule "libs/mlvg"]
+	path = libs/mlvg
+	url = https://github.com/johnmatter/mlvg.git
+[submodule "libs/readerwriterqueue"]
+	path = libs/readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue.git
