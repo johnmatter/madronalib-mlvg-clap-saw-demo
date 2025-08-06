@@ -16,3 +16,9 @@
 [submodule "libs/readerwriterqueue"]
 	path = libs/readerwriterqueue
 	url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "tools/clap-host"]
+	path = tools/clap-host
+	url = https://github.com/free-audio/clap-host.git
+[submodule "tools/clap-info"]
+	path = tools/clap-info
+	url = https://github.com/free-audio/clap-info.git

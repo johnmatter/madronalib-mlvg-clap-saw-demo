@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-BUILD_DIR="$PROJECT_ROOT/ignore/build"
+BUILD_DIR="$PROJECT_ROOT/build"
 VALIDATOR_DIR="$PROJECT_ROOT/libs/clap-validator"
 
 echo -e "${BLUE}=== CLAP Saw Demo Plugin Testing ===${NC}"

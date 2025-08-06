@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-BUILD_DIR="$PROJECT_ROOT/ignore/build"
+BUILD_DIR="$PROJECT_ROOT/build"
 TOOLS_DIR="$PROJECT_ROOT/tools"
 
 echo -e "${CYAN}=== CLAP Saw Demo Plugin Debugging Suite ===${NC}"

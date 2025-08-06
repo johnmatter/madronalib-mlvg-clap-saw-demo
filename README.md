@@ -32,9 +32,62 @@ CLAP Host ↔ CLAPExport.h ↔ ClapSawDemo (SignalProcessor)
 git submodule update --init --recursive
 
 # Configure and build
-cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCOPY_AFTER_BUILD=ON
+cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DINSTALL_AFTER_BUILD=ON
 cmake --build build -j --target clap-saw-demo
 ```
+
+### Build Options
+The following CMake options are available to customize the build:
+
+```bash
+# GUI Options
+-DCLAP_DEMO_GUI=ON          # Include GUI (default: ON)
+-DCLAP_DEMO_GUI=OFF         # Build headless plugin without GUI
+
+# Testing Options  
+-DCLAP_DEMO_TESTS=ON        # Enable CLAP validation testing (default: ON)
+-DCLAP_DEMO_TESTS=OFF       # Disable CLAP validation testing
+
+# Installation Options
+-DINSTALL_AFTER_BUILD=ON    # Auto-install plugin to system CLAP directory (default: OFF)
+-DINSTALL_AFTER_BUILD=OFF   # Don't auto-install (manual installation required)
+
+# Debug Options
+-DUSE_SANITIZER=ON          # Enable AddressSanitizer (macOS only)
+-DCMAKE_BUILD_TYPE=Debug    # Build with debug symbols
+```
+
+Examples:
+```bash
+# Build with GUI and auto-install
+cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DINSTALL_AFTER_BUILD=ON
+
+# Build headless plugin for testing
+cmake -Bbuild -DCLAP_DEMO_GUI=OFF -DCLAP_DEMO_TESTS=ON
+
+# Build with debug symbols and sanitizer
+cmake -Bbuild -DCMAKE_BUILD_TYPE=Debug -DUSE_SANITIZER=ON
+```
+
+### Development Tools
+When `CLAP_DEMO_TESTS=ON` is enabled, additional development tools are built:
+
+- clap-info: Plugin inspection and validation tool
+- clap-host: Minimal CLAP host for testing plugins
+
+Available Targets:
+```bash
+# Build and run plugin inspection
+make inspect-plugin
+
+# Build clap-host testing application
+make build-clap-host
+
+# Test plugin with clap-host
+make test-plugin-host
+```
+
+See `tools/README.md` for detailed tool documentation.
 
 ### Installation
 The plugin is automatically installed to:

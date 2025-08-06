@@ -6,11 +6,11 @@ REM Builds the plugin and runs clap-validator to ensure CLAP specification compl
 
 echo === CLAP Saw Demo Plugin Testing ===
 echo Project Root: %~dp0..
-echo Build Directory: %~dp0..\ignore\build
+echo Build Directory: %~dp0..\build
 echo.
 
 set PROJECT_ROOT=%~dp0..
-set BUILD_DIR=%PROJECT_ROOT%\ignore\build
+set BUILD_DIR=%PROJECT_ROOT%\build
 set VALIDATOR_DIR=%PROJECT_ROOT%\libs\clap-validator
 
 REM Check if Rust is installed

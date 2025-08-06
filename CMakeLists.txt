@@ -18,27 +18,28 @@ set(CMAKE_CXX_STANDARD 17)
 
 # use asan as an option (currently mac only)
 option(USE_SANITIZER "Build and link with ASAN" FALSE)
-option(CSD_INCLUDE_GUI "Include a GUI in ClapSawDemo" TRUE)
+option(CLAP_DEMO_GUI "Include a GUI in the CLAP demo plugin" TRUE)
 
 # Copy on mac (could expand to other platforms)
-option(COPY_AFTER_BUILD "Copy the clap to ~/Library on MACOS, ~/.clap on linux" FALSE)
+option(INSTALL_AFTER_BUILD "Copy the plugin to system CLAP directory after build" FALSE)
 
 add_subdirectory(libs/readerwriterqueue EXCLUDE_FROM_ALL)
 add_subdirectory(libs/clap EXCLUDE_FROM_ALL)
 add_subdirectory(libs/clap-helpers EXCLUDE_FROM_ALL)
 set(BUILD_TESTS OFF CACHE BOOL "Disable madronalib tests")
 add_subdirectory(libs/madronalib EXCLUDE_FROM_ALL)
-if (${CSD_INCLUDE_GUI})
+if(${CLAP_DEMO_GUI})
     message(STATUS "Including MLVG for GUI")
     set(BUILD_TESTS OFF CACHE BOOL "Disable MLVG tests")
     add_subdirectory(libs/mlvg EXCLUDE_FROM_ALL)
     # create embedded font resources
     create_resources(libs/mlvg/examples/app/resources build/resources/clap-saw-demo)
+    
+    if(APPLE)
+        target_compile_options(mlvg PRIVATE -Wno-deprecated-declarations)
+    endif()
 else()
-    message(STATUS "GUI Bypassed. headless CSD generated")
-endif()
-if (APPLE AND ${CSD_INCLUDE_GUI})
-  target_compile_options(mlvg PRIVATE -Wno-deprecated-declarations)
+    message(STATUS "GUI Bypassed. headless plugin generated")
 endif()
 
 
@@ -47,24 +48,28 @@ add_library(${PROJECT_NAME} MODULE
         src/clap-saw-demo-entry.cpp  # New simple entry file
 )
 
-if(CSD_INCLUDE_GUI)
-  target_sources(${PROJECT_NAME} PRIVATE
-    src/clap-saw-demo-gui.cpp
-    build/resources/clap-saw-demo/resources.c
-  )
+if(${CLAP_DEMO_GUI})
+    target_sources(${PROJECT_NAME} PRIVATE
+        src/clap-saw-demo-gui.cpp
+        build/resources/clap-saw-demo/resources.c
+    )
 
-  # Set the generated resource files to compile as C++
-  set_source_files_properties(build/resources/clap-saw-demo/resources.c PROPERTIES COMPILE_FLAGS "-x c++")
+    # Set the generated resource files to compile as C++
+    set_source_files_properties(build/resources/clap-saw-demo/resources.c PROPERTIES COMPILE_FLAGS "-x c++")
 endif()
-target_link_libraries(${PROJECT_NAME} readerwriterqueue clap clap-helpers madronalib mlvg)
+
+target_link_libraries(${PROJECT_NAME} readerwriterqueue clap clap-helpers madronalib)
+if(${CLAP_DEMO_GUI})
+    target_link_libraries(${PROJECT_NAME} mlvg)
+endif()
 
 # Platform-specific libraries for MLVG
-if(APPLE AND CSD_INCLUDE_GUI)
-  find_library(METAL_FRAMEWORK Metal)
-  find_library(METALKIT_FRAMEWORK MetalKit)
-  if(METAL_FRAMEWORK AND METALKIT_FRAMEWORK)
-    target_link_libraries(${PROJECT_NAME} ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK})
-  endif()
+if(APPLE AND ${CLAP_DEMO_GUI})
+    find_library(METAL_FRAMEWORK Metal)
+    find_library(METALKIT_FRAMEWORK MetalKit)
+    if(METAL_FRAMEWORK AND METALKIT_FRAMEWORK)
+        target_link_libraries(${PROJECT_NAME} ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK})
+    endif()
 endif()
 
 # Add include directories
@@ -99,12 +104,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 enable_testing()
 
 # Add clap-validator testing target
-option(CSD_ENABLE_TESTING "Enable CLAP validation testing" TRUE)
+option(CLAP_DEMO_TESTS "Enable CLAP validation testing" TRUE)
 
-if (${CSD_ENABLE_TESTING})
-  # Check if Rust/Cargo is available for clap-validator
-  find_program(CARGO_EXECUTABLE cargo)
-  if (CARGO_EXECUTABLE)
+if(${CLAP_DEMO_TESTS})
+    # Check if Rust/Cargo is available for clap-validator
+    find_program(CARGO_EXECUTABLE cargo)
+    if(CARGO_EXECUTABLE)
     message(STATUS "Found Cargo at ${CARGO_EXECUTABLE} - enabling CLAP validation tests")
 
     # Build clap-validator
@@ -161,7 +166,7 @@ if (${CSD_ENABLE_TESTING})
       )
 
       add_custom_target(inspect-plugin
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/clap-info/build/clap-info $<TARGET_FILE:${PROJECT_NAME}>
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/clap-info/build/clap-info ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.clap
         DEPENDS ${PROJECT_NAME} build-clap-info
         COMMENT "Inspecting plugin with clap-info"
       )
@@ -169,8 +174,18 @@ if (${CSD_ENABLE_TESTING})
 
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tools/clap-host/CMakeLists.txt)
       message(STATUS "Found clap-host - adding host testing targets")
-      # Note: clap-host requires Qt6 and has complex build requirements
-      # Use scripts/debug-plugin.sh for full clap-host integration
+      add_custom_target(build-clap-host
+        COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/tools/clap-host
+                ${CMAKE_COMMAND} -Bbuild -DCMAKE_BUILD_TYPE=Release
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_SOURCE_DIR}/tools/clap-host/build --config Release
+        COMMENT "Building clap-host testing tool"
+      )
+
+      add_custom_target(test-plugin-host
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tools/clap-host/build/host/clap-host -p $<TARGET_FILE:${PROJECT_NAME}>
+        DEPENDS ${PROJECT_NAME} build-clap-host
+        COMMENT "Testing plugin with clap-host"
+      )
     endif()
 
   else()
@@ -178,9 +193,8 @@ if (${CSD_ENABLE_TESTING})
   endif()
 endif()
 
-if (${CSD_INCLUDE_GUI})
+if(${CLAP_DEMO_GUI})
     message(STATUS "Adding MLVG GUI support")
-    target_link_libraries(${PROJECT_NAME} mlvg)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_GUI=1)
 else()
     message(STATUS "Skipping GUI generation")
@@ -209,29 +223,26 @@ if(APPLE)
             $<$<BOOL:${USE_SANITIZER}>:-fsanitize=undefined>
             )
 
-    if (${COPY_AFTER_BUILD})
-        message(STATUS "Will copy plugin after every build" )
+    if(${INSTALL_AFTER_BUILD})
+        message(STATUS "Will copy plugin after every build")
         set(products_folder ${CMAKE_BINARY_DIR})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E echo "Installing ${products_folder}/${PROJECT_NAME}.clap to ~/Library/Audio/Plug-Ins/CLAP/"
-                COMMAND ${CMAKE_COMMAND} -E make_directory "~/Library/Audio/Plug-Ins/CLAP"
-                COMMAND ${CMAKE_COMMAND} -E copy_directory "${products_folder}/${PROJECT_NAME}.clap" "~/Library/Audio/Plug-Ins/CLAP/${PROJECT_NAME}.clap"
-                )
+            COMMAND ${CMAKE_COMMAND} -E echo "Installing ${products_folder}/${PROJECT_NAME}.clap to ~/Library/Audio/Plug-Ins/CLAP/"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "~/Library/Audio/Plug-Ins/CLAP"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${products_folder}/${PROJECT_NAME}.clap" "~/Library/Audio/Plug-Ins/CLAP/${PROJECT_NAME}.clap"
+        )
     endif()
 elseif(UNIX)
     target_compile_definitions(${PROJECT_NAME} PRIVATE IS_LINUX=1)
-    if (${CSD_INCLUDE_GUI})
-        target_sources(${PROJECT_NAME} PRIVATE src/linux-vstgui-adapter.cpp)
-    endif()
     set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".clap" PREFIX "")
-    if (${COPY_AFTER_BUILD})
-        message(STATUS "Will copy plugin after every build" )
+    if(${INSTALL_AFTER_BUILD})
+        message(STATUS "Will copy plugin after every build")
         set(products_folder ${CMAKE_BINARY_DIR})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E echo "Installing ${products_folder}/${PROJECT_NAME}.clap to ~/.clap"
-                COMMAND ${CMAKE_COMMAND} -E make_directory "~/.clap"
-                COMMAND ${CMAKE_COMMAND} -E copy "${products_folder}/${PROJECT_NAME}.clap" "~/.clap"
-                )
+            COMMAND ${CMAKE_COMMAND} -E echo "Installing ${products_folder}/${PROJECT_NAME}.clap to ~/.clap"
+            COMMAND ${CMAKE_COMMAND} -E make_directory "~/.clap"
+            COMMAND ${CMAKE_COMMAND} -E copy "${products_folder}/${PROJECT_NAME}.clap" "~/.clap"
+        )
     endif()
 
 else()
