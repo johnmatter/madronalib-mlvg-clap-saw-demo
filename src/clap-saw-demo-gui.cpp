@@ -11,10 +11,10 @@
 ClapSawDemoGUI::ClapSawDemoGUI(ClapSawDemo* processor)
   : CLAPAppView("ClapSawDemo", processor) {
 
-  // // override grid setup
-  setGridSizeDefault(60);
-  setGridSizeLimits(30, 120);
-  setFixedAspectRatio({10, 5});
+  // Set up grid system for fixed aspect ratio (following MLVG pattern)
+  setGridSizeDefault(kDefaultGridSize);
+  setGridSizeLimits(kMinGridSize, kMaxGridSize);
+  setFixedAspectRatio({kGridUnitsX, kGridUnitsY});
 
 }
 
@@ -185,6 +185,15 @@ void ClapSawDemoGUI::makeWidgets() {
     {"h_align", "right"},
     {"v_align", "middle"},
     {"text_color", ml::colorToMatrix({ 0.01, 0.01, 0.01, 1.0 })}
+  });
+
+  // Add resize widget to bottom right corner
+  _view->_widgets.add_unique<Resizer>("resizer", ml::WithValues{
+    {"fix_ratio", static_cast<float>(kGridUnitsX)/static_cast<float>(kGridUnitsY)},  // Use grid constants for aspect ratio
+    {"z", -2},                  // Stay on top of other widgets
+    {"fixed_size", true},
+    {"fixed_bounds", {-16, -16, 16, 16}},  // 16x16 pixel resize handle
+    {"anchor", {1, 1}}          // Anchor to bottom right corner {1, 1}
   });
 }
 

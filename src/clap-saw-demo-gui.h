@@ -1,8 +1,14 @@
 #pragma once
 
-#include "CLAPExport.h"  // Includes all necessary MLVG headers and CLAPAppView
+#include "CLAPExport.h"
 #include "nanovg.h"
 #include <string>
+
+constexpr int kGridUnitsX{ 10 };
+constexpr int kGridUnitsY{ 5 };
+constexpr int kDefaultGridSize{ 60 };
+constexpr int kMinGridSize{ 30 };
+constexpr int kMaxGridSize{ 120 };
 
 // Forward declaration
 class ClapSawDemo;
