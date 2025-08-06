@@ -20,12 +20,6 @@ ClapSawDemoGUI::ClapSawDemoGUI(ClapSawDemo* processor)
 
 void ClapSawDemoGUI::makeWidgets() {
 
-  //  _   _ _   _
-  // | |_(_) |_| | ___
-  // | __| | __| |/ _ \
-  // | |_| | |_| |  __/
-  //  \__|_|\__|_|\___|
-
   _view->_backgroundWidgets.add_unique<TextLabelBasic>("title", ml::WithValues{
     {"bounds", {2, 0.2, 6, 0.6}},
     {"text", "madronalib/mlvg demo"},
@@ -36,8 +30,8 @@ void ClapSawDemoGUI::makeWidgets() {
     {"text_color", ml::colorToMatrix({ 0.01, 0.01, 0.01, 1.0 })}
   });
 
-  // Could be fun to have some kind of patch diagram
-
+  // Could be fun to have some kind of patch diagram in the middle of the GUI
+  //
   //   ml::kPitch  ml::kGate
   //      |           |
   //   ml::SawGen     |
@@ -46,13 +40,6 @@ void ClapSawDemoGUI::makeWidgets() {
   //      |___________|
   //            *
   //            |
-
-  //  _
-  // | | ___  _ __   __ _ ___ ___
-  // | |/ _ \| '_ \ / _` / __/ __|
-  // | | (_) | |_) | (_| \__ \__ \
-  // |_|\___/| .__/ \__,_|___/___/
-  //         |_|
 
   // Cutoff
   _view->_widgets.add_unique<DialBasic>("f0", ml::WithValues{
@@ -96,12 +83,6 @@ void ClapSawDemoGUI::makeWidgets() {
     {"v_align", "middle"},
     {"text_color", ml::colorToMatrix({ 0.01, 0.01, 0.01, 1.0 })}
   });
-
-  //            _
-  //   __ _  __| |___ _ __
-  //  / _` |/ _` / __| '__|
-  // | (_| | (_| \__ \ |
-  //  \__,_|\__,_|___/_|
 
   // Attack
   _view->_widgets.add_unique<DialBasic>("attack", ml::WithValues{
@@ -224,30 +205,29 @@ void ClapSawDemoGUI::layoutView(ml::DrawContext dc) {
   positionLabelUnderDial("release", "release_label");
 }
 
-void ClapSawDemoGUI::loadFontFromFile(NativeDrawContext* nvg, const std::string& fontName, const std::string& filePath) {
-  FILE* fontFile = fopen(filePath.c_str(), "rb");
-  if (fontFile) {
-    // Read font file into memory
-    fseek(fontFile, 0, SEEK_END);
-    long fontSize = ftell(fontFile);
-    fseek(fontFile, 0, SEEK_SET);
-
-    unsigned char* fontData = (unsigned char*)malloc(fontSize);
-    if (fontData) {
-      size_t bytesRead = fread(fontData, 1, fontSize, fontFile);
-      if (bytesRead == fontSize) {
-        // Create FontResource and store in resources map
-        _resources.fonts[ml::Path(fontName.c_str())] = std::make_unique<ml::FontResource>(
-          nvg, fontName.c_str(), fontData, fontSize, 1  // freeData=1 so FontResource owns the data
-        );
-      } else {
-        free(fontData);
-      }
-    }
-    fclose(fontFile);
-  } else {
-  }
-}
+// void ClapSawDemoGUI::loadFontFromFile(NativeDrawContext* nvg, const std::string& fontName, const std::string& filePath) {
+//   FILE* fontFile = fopen(filePath.c_str(), "rb");
+//   if (fontFile) {
+//     // Read font file into memory
+//     fseek(fontFile, 0, SEEK_END);
+//     long fontSize = ftell(fontFile);
+//     fseek(fontFile, 0, SEEK_SET);
+//     unsigned char* fontData = (unsigned char*)malloc(fontSize);
+//     if (fontData) {
+//       size_t bytesRead = fread(fontData, 1, fontSize, fontFile);
+//       if (bytesRead == fontSize) {
+//         // Create FontResource and store in resources map
+//         _resources.fonts[ml::Path(fontName.c_str())] = std::make_unique<ml::FontResource>(
+//           nvg, fontName.c_str(), fontData, fontSize, 1  // freeData=1 so FontResource owns the data
+//         );
+//       } else {
+//         free(fontData);
+//       }
+//     }
+//     fclose(fontFile);
+//   } else {
+//   }
+// }
 
 void ClapSawDemoGUI::initializeResources(NativeDrawContext* nvg) {
   if (!nvg) return;

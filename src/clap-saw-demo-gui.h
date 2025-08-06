@@ -30,6 +30,8 @@ public:
   void initializeResources(NativeDrawContext* nvg) override;
 
 private:
+
   // Helper function to load fonts from disk
-  void loadFontFromFile(NativeDrawContext* nvg, const std::string& fontName, const std::string& filePath);
+  // void loadFontFromFile(NativeDrawContext* nvg, const std::string& fontName, const std::string& filePath);
+
 };
